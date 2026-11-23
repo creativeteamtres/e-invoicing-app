@@ -1,0 +1,57 @@
+/* Shared readability and navigation sizing across the prototype pages. */
+:root{--side:260px;--sidebar:260px}
+body{font-size:14px}
+.sidebar nav a,.nav-item{min-height:43px!important;height:43px!important;font-size:12px!important;gap:12px!important}
+.sidebar>small,.nav-label,.nav-title{font-size:9px!important}
+.topbar,.crumb,.breadcrumbs{font-size:12px!important}
+table td{font-size:10px!important}
+table th{font-size:8px!important}
+.primary,.primary-button,.save,.save-draft,.submit-button,.compliance-button{font-size:11px!important}
+.side-foot a,.settings,.setting{display:flex;align-items:center;min-height:43px;font-size:12px!important;color:#626978;text-decoration:none}
+.account-action{display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:34px;border:0;border-radius:7px;background:transparent;color:#626978;font:700 12px 'DM Sans',sans-serif;cursor:pointer}
+.account-action:hover{background:#f0efff;color:#534bd0;box-shadow:0 0 0 3px #655de21a}
+.account-action-wide{width:100%;justify-content:flex-start;padding:0 10px;margin-top:8px;border-top:1px solid #eff0f3;border-radius:0}
+.utility-overlay[hidden]{display:none}
+.utility-overlay{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:#1e23365c;backdrop-filter:blur(4px);animation:veil-in .16s ease-out}
+.utility-dialog{width:min(480px,100%);max-height:min(82vh,700px);overflow:auto;position:relative;background:#fff;border:1px solid #ececf4;border-radius:15px;padding:25px;box-shadow:0 24px 80px #151a3633;animation:dialog-in .24s cubic-bezier(.2,.8,.2,1)}
+.utility-close{position:absolute;right:14px;top:13px;width:32px;height:32px;border:0;border-radius:8px;background:#f6f6fa;color:#717786;font-size:20px;cursor:pointer}
+.utility-close:hover{background:#efeeff;color:#514ac8;box-shadow:0 0 0 3px #655de220}
+.utility-eyebrow{font-size:9px;letter-spacing:1px;color:#7771d7;font-weight:700;margin:0 0 7px}
+.utility-dialog h2{font:700 21px Manrope,sans-serif;letter-spacing:-.5px;margin:0 35px 9px;color:#292e3a}
+.utility-copy{font-size:12px;line-height:1.6;color:#737987;margin:0 0 16px}
+.utility-links{display:grid;gap:6px;margin-top:15px}
+.utility-links a,.signout-link{display:flex;align-items:center;justify-content:space-between;min-height:40px;border:1px solid #eceef2;border-radius:8px;padding:0 12px;color:#4e5461;text-decoration:none;font-size:12px;font-weight:600;transition:background .16s,border-color .16s,transform .16s,box-shadow .16s}
+.utility-links a[hidden]{display:none}
+.utility-links a:hover,.signout-link:hover{background:#f4f3ff;border-color:#d9d6ff;color:#514ac8;transform:translateY(-1px);box-shadow:0 5px 15px #5d55dd14}
+.utility-links a span,.signout-link span{color:#625bdd;font-size:16px}
+.utility-search{height:42px;display:flex;align-items:center;gap:9px;border:1px solid #dedff0;border-radius:8px;padding:0 11px;color:#827bdd;font-size:19px;margin:16px 0 10px}
+.utility-search:focus-within{border-color:#8881e8;box-shadow:0 0 0 4px #655de218}
+.utility-search input{border:0;outline:0;width:100%;font:12px 'DM Sans',sans-serif;color:#343947}
+.utility-search input::placeholder{color:#a3a8b2}
+.notification-list{display:grid;gap:0}
+.notification-list article{display:flex;align-items:center;gap:10px;padding:13px 0;border-top:1px solid #eff0f3}
+.notification-list article>i{width:30px;height:30px;border-radius:8px;background:#eff8f3;color:#3eaa7c;display:grid;place-items:center;font-style:normal}
+.notification-list article div{display:grid;gap:4px;flex:1}.notification-list b{font-size:11px}.notification-list small,.notification-list time{font-size:9px;color:#959ba6}
+.signout-link{margin:14px 0;background:#fff8f7;border-color:#f3e1df;color:#b65752}
+.utility-footnote{font-size:9px;color:#9a9faa;line-height:1.5;margin:15px 0 0}
+.content,.page-wrap{animation:page-reveal .2s ease-out both}
+button,a,.nav-item{transition:color .16s ease,background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+button:hover,.primary-button:hover,.primary:hover,.save:hover,.save-draft:hover,.submit-button:hover,.compliance-button:hover{box-shadow:0 5px 18px #5d55dd2c;filter:brightness(1.025)}
+.sidebar nav a:hover,.nav-item:hover{transform:translateX(2px);box-shadow:inset 3px 0 #8d87ef}
+@keyframes page-reveal{from{opacity:.72}to{opacity:1}}
+@keyframes veil-in{from{opacity:0}to{opacity:1}}
+@keyframes dialog-in{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.ui-scale-controls{position:fixed;right:16px;bottom:14px;z-index:30;display:flex;align-items:center;gap:4px;padding:5px;background:#fff;border:1px solid #e4e6ec;border-radius:9px;box-shadow:0 4px 18px #20263318}
+.ui-scale-controls button{min-width:31px;height:30px;border:0;border-radius:6px;background:#f4f3ff;color:#514ac8;font:700 14px 'DM Sans',sans-serif;cursor:pointer}
+.ui-scale-controls button:hover{background:#e8e6ff}
+.ui-scale-controls output{min-width:44px;text-align:center;font-size:10px;font-weight:700;color:#525866}
+.ui-scale-controls .scale-reset{font-size:9px;min-width:40px;background:#fff;color:#777d89}
+@media(max-width:650px){.ui-scale-controls{right:9px;bottom:9px;opacity:.95}.utility-dialog{padding:21px;border-radius:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Keep Settings in the always-visible navigation area on the overview. */
+.overview-settings{position:sticky;bottom:0;z-index:2;margin-top:14px;flex:none;background:#fff;box-shadow:0 -8px 12px #ffffff}
+.sidebar{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d8d9e2 transparent}
+.sidebar-bottom{flex-shrink:0}
+
+.topbar button[aria-label='Search'],.topbar button[aria-label='Notifications']{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:0;border-radius:8px;background:transparent;color:#6d7481;font-size:16px;cursor:pointer}.topbar button[aria-label='Search']:hover,.topbar button[aria-label='Notifications']:hover{background:#f0efff;color:#514ac8;box-shadow:0 0 0 3px #655de21a}

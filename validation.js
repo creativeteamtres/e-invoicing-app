@@ -1,0 +1,11 @@
+const shade=document.getElementById('shade'),report=document.getElementById('report'),toast=document.getElementById('toast');let timer;
+function message(text){toast.textContent=text;toast.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>toast.classList.remove('show'),2500);}
+function close(){shade.classList.remove('open');report.classList.remove('open');}
+document.querySelectorAll('[data-report]').forEach(button=>button.addEventListener('click',()=>{
+ const kind=button.dataset.report;const row=button.closest('tr');document.getElementById('reportTitle').textContent=row.querySelector('td b').textContent;
+ const findings=kind==='passed'?[['Document structure','No demo issues found in the sample checks.','DEMO-OK','Passed']]:kind==='review'?[['Buyer electronic address','A routing identifier is not present in this example record. Add one if the recipient’s channel requires it.','DEMO-WARN-01','Warning']]:[['Invoice number','A finalized invoice number is missing from this draft example.','DEMO-ERR-01','Error'],['Buyer reference','A reference required by this example’s public-sector scenario is missing.','DEMO-ERR-02','Error']];
+ document.getElementById('reportBody').innerHTML=findings.map(([title,text,rule,severity])=>`<section class="finding"><b>${title}</b><span class="severity ${severity.toLowerCase()}">${severity.toUpperCase()}</span><p>${text}</p><span class="rule">${rule}</span></section>`).join('');report.classList.add('open');shade.classList.add('open');
+}));
+document.getElementById('startValidation').addEventListener('click',()=>message('Connect invoice generation and the KoSIT validator to run a real check.'));
+document.getElementById('formatFilter').addEventListener('change',event=>document.querySelectorAll('#checks tr').forEach(row=>row.hidden=event.target.value!=='all'&&row.dataset.format!==event.target.value));
+document.getElementById('closeReport').addEventListener('click',close);document.getElementById('closeReportBottom').addEventListener('click',close);shade.addEventListener('click',close);document.addEventListener('keydown',event=>{if(event.key==='Escape')close();});document.getElementById('menu').addEventListener('click',()=>document.querySelector('.sidebar').classList.toggle('open'));
