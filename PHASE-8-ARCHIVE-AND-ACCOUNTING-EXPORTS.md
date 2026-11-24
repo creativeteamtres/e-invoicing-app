@@ -1,11 +1,12 @@
 # Phase 8 — Archive and Accounting Exports
 
-**Status:** Archive/export workspace prototype implemented; persistent records and real exports are not connected.
+**Status:** Workspace SQL archiving and DATEV EXTF Buchungsstapel file export are implemented. SQL append-only controls and hashes do not equal WORM/GoBD certification.
 
 ## Delivered
 
-- `archive.html`, `archive.css`, `archive.js`: archive and export tabs, record search, illustrative history drawer, integrity digest display explicitly marked as illustrative, export history, and DATEV workflow notice.
-- No files are stored in immutable storage. No hash is computed. No DATEV file is generated or downloaded.
+- Original inbound files and accepted outbound artifacts are stored in tenant SQL with SHA-256 digests, retention targets, downloads, and a chained audit record.
+- The Exports tab creates and downloads DATEV EXTF files using customer-supplied account and tax-key mappings.
+- DATEV output is not transmitted to DATEV, and exported account mappings must be confirmed by the customer’s tax advisor.
 
 ## Production archive requirements to implement
 

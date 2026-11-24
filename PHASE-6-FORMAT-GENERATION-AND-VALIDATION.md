@@ -1,12 +1,12 @@
 # Phase 6 — Format Generation and Validation
 
-**Status:** Validation experience prototype implemented; real XML generation and KoSIT validation are not connected.
+**Status:** XRechnung UBL generation and KoSIT 1.6.3 validation with the pinned XRechnung 3.0.2 ruleset are installed and smoke-tested. ZUGFeRD PDF/A-3 and embedded CII handling require a separately installed Mustang CLI.
 
 ## Delivered
 
-- `validation.html`, `validation.css`, `validation.js`: validation dashboard, format filter, demo report drawer, clear severity presentation, and responsive navigation.
-- Dashboard navigation opens the validation workspace.
-- Reports and counts are explicitly illustrative. The UI states that no official KoSIT validation has been performed.
+- The validation page uploads XML and shows workspace validation history/reports.
+- The invoice workspace generates XRechnung UBL 2.1 XML. ZUGFeRD PDF/A-3 generation is enabled by the independent Mustang adapter after its CLI is installed and configured.
+- Validation status, report, ruleset ID, and artifact are stored in workspace SQL; non-accepted outcomes block delivery.
 
 ## Production adapter contract
 
@@ -27,8 +27,8 @@ Sources: [XRechnung standard and versions](https://xeinkauf.de/xrechnung/), [KoS
 
 ## Known boundary
 
-This phase does **not** output XRechnung or ZUGFeRD documents and does **not** run KoSIT. No row or report in the prototype is proof of compliance. The XRechnung validator bundle alone does not implement all ZUGFeRD PDF/A-3 packaging or profile behavior; that requires a separate generation/parsing adapter and its own verification path.
+This development workspace does not have official validator bundles configured. Generated files are not marked accepted until KoSIT or Mustang returns an accepted result. ZUGFeRD also requires a human-readable PDF source and a pinned Mustang CLI.
 
 ## Next
 
-**Phase 7 — Sending and receiving:** implement the channel orchestration UI and backend contracts, beginning with email/API and keeping Peppol behind an independent provider adapter. Only validated generated artifacts should enter outbound delivery.
+**Current next steps:** configure the external validators and SMTP credentials, then add API/EDI and Peppol adapters behind their own provider modules.

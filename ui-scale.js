@@ -31,10 +31,12 @@
     input.focus();
   };
   const showNotifications=()=>openModal('Notifications',`<p class="utility-copy">Recent workspace activity</p><div class="notification-list"><article><i>✓</i><div><b>Payment received</b><small>Berger &amp; Sohn · INV-2026-042</small></div><time>2h ago</time></article><article><i>⇧</i><div><b>Invoice sent</b><small>Weber &amp; Partner · INV-2026-041</small></div><time>Yesterday</time></article><article><i>!</i><div><b>Incoming invoice needs review</b><small>Hanse Bürobedarf GmbH</small></div><time>Yesterday</time></article></div>`);
-  const showAccount=()=>openModal('Account menu',`<p class="utility-copy">Signed in as <b>Alex Morgan</b> · Workspace admin</p><a class="signout-link" href="./auth.html">Sign out <span>→</span></a><p class="utility-footnote">Authentication is a prototype. No live session is connected.</p>`);
+  const showAccount=async()=>{let identity='Your Ledgerly account';try{const data=await window.LedgerlyAPI.request('/api/auth/me');identity=`${data.user.email} · ${data.workspace.role}`;}catch{}openModal('Account menu',`<p class="utility-copy">Signed in as <b>${identity.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}</b></p><a class="signout-link" href="./auth.html">Sign out <span>→</span></a>`);};
   document.addEventListener('DOMContentLoaded',()=>{
     setScale(scale);
     document.body.append(modal);
+    const publicRoute=/\/(?:auth|onboarding)\.html$/.test(location.pathname);
+    if(!publicRoute&&window.LedgerlyAPI){window.LedgerlyAPI.request('/api/auth/me').catch(error=>{if(error.status===401)location.assign(`./auth.html?returnTo=${encodeURIComponent(location.pathname.split('/').pop()||'index.html')}`);});}
     const controls=document.createElement('div');controls.className='ui-scale-controls';controls.setAttribute('aria-label','Display size controls');controls.innerHTML='<button type="button" data-scale="down" aria-label="Decrease display size">A−</button><output aria-live="polite">100%</output><button type="button" data-scale="up" aria-label="Increase display size">A+</button><button type="button" class="scale-reset" data-scale="reset">Reset</button>';
     document.body.append(controls);
     setScale(scale);
@@ -50,6 +52,8 @@
       if(notifications){event.preventDefault();showNotifications();return;}
       const account=event.target.closest('.account-action,.more-button,.user-row i,.user>button');
       if(account){event.preventDefault();showAccount();return;}
+      const signout=event.target.closest('.signout-link');
+      if(signout){event.preventDefault();window.LedgerlyAPI?.json('/api/auth/logout','POST').catch(()=>{}).finally(()=>location.assign('./auth.html'));return;}
       const localPage=event.target.closest('a[href]');
       if(localPage){
         const destination=new URL(localPage.href,location.href);

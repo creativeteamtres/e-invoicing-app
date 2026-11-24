@@ -1,4 +1,16 @@
 {
+  "name": "ledgerly-e-invoicing-prototype",
+  "private": true,
+  "scripts": {
+    "api": "node --env-file-if-exists=.env backend/server.mjs",
+    "setup:kosit": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-kosit.ps1",
+    "setup:mustang": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-mustang.ps1",
+    "setup:secrets": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-secrets.ps1",
+    "start:kosit": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-kosit.ps1",
+    "stop:kosit": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop-kosit.ps1",
+    "test:kosit": "node scripts/validate-kosit.mjs"
+  },
+  "engines": { "node": ">=24" },
   "devDependencies": {
     "shadcn": "^4.23.0"
   }

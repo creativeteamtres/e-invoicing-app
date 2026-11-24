@@ -1,11 +1,13 @@
 # Phase 7 — Sending and Receiving
 
-**Status:** Channel workflow prototype implemented; no documents are transmitted or parsed.
+**Status:** Incoming UBL/CII and ZUGFeRD intake and SMTP email delivery workflows are implemented. Email/PDF adapters require configuration; API/EDI and Peppol are not connected.
 
 ## Delivered
 
-- `delivery.html`, `delivery.css`, `delivery.js`: separate outbound and incoming tabs, email/API/EDI/Peppol channel cards, delivery history table, receiving-file selection/drop UI, and invoice workflow detail drawer.
-- No API, email, Peppol access point, EDI connection, or inbound parser is configured. File selection does not upload or retain the file. Status rows are illustrative and marked as demo states.
+- Incoming XML is parsed into a canonical model, validated, and stored with the exact original bytes and findings for review.
+- Incoming ZUGFeRD PDF extraction/validation runs through Mustang when configured.
+- Outbound email requires a generated artifact with an accepted validation result. SMTP attempts and outcome are recorded.
+- API/EDI and Peppol cards remain connector placeholders; there is no connected Peppol access point or EDI provider.
 
 ## Production workflow boundary
 

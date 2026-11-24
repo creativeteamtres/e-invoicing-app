@@ -1,3 +1,10 @@
 node_modules/
 e-invoicing-app/
 .next/
+data/
+.env
+.env.*
+!.env.example
+backend/.tmp/
+tools/kosit/
+tools/mustang/
