@@ -34,8 +34,8 @@ function attachmentMessage({sender,recipient,subject,body,filename,mimeType,payl
   return lines.join('\r\n').replace(/(^|\r\n)\./g,'$1..');
 }
 
-export async function sendInvoiceEmail({smtp=null,recipient,subject,body,filename,mimeType,payload}){
-  const host=String(smtp?.host||process.env.SMTP_HOST||'').trim(),sender=String(smtp?.sender||process.env.SMTP_FROM||'').trim(),port=Number(smtp?.port||process.env.SMTP_PORT||587),ssl=smtp? smtp.tlsMode==='ssl':String(process.env.SMTP_SSL||'false').toLowerCase()==='true',starttls=smtp?smtp.tlsMode==='starttls':String(process.env.SMTP_STARTTLS||'true').toLowerCase()==='true';
+export async function sendInvoiceEmail({smtp,recipient,subject,body,filename,mimeType,payload}){
+  const host=String(smtp?.host||'').trim(),sender=String(smtp?.sender||'').trim(),port=Number(smtp?.port||587),ssl=smtp?.tlsMode==='ssl',starttls=smtp?.tlsMode==='starttls';
   if(!host||!sender)throw Object.assign(new Error('Email delivery is not configured. Add SMTP settings in Workspace Settings.'),{status:503});
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient))throw Object.assign(new Error('Enter a valid recipient email address.'),{status:400});
   const safeSender=cleanHeader(sender),safeRecipient=cleanHeader(recipient),safeSubject=cleanHeader(subject),safeFilename=String(filename).replace(/["\r\n\\/\0-\x1f]/g,'_').slice(0,180);
@@ -57,7 +57,7 @@ export async function sendInvoiceEmail({smtp=null,recipient,subject,body,filenam
       const secure=tls.connect({socket,servername:host});await new Promise((resolve,reject)=>{secure.once('secureConnect',resolve);secure.once('error',reject);});
       session=new SmtpSession(secure);await session.command(`EHLO ${helo}`,[250]);
     }
-    const username=smtp?String(smtp.username||''):process.env.SMTP_USERNAME||'',password=smtp?String(smtp.password||''):process.env.SMTP_PASSWORD||'';
+    const username=String(smtp?.username||''),password=String(smtp?.password||'');
     if(username){
       try{const auth=await session.command(`AUTH PLAIN ${Buffer.from(`\0${username}\0${password}`).toString('base64')}`,[235,334]);if(auth.code===334)await session.command(Buffer.from(`\0${username}\0${password}`).toString('base64'),[235]);}
       catch{await session.command('AUTH LOGIN',[334]);await session.command(Buffer.from(username).toString('base64'),[334]);await session.command(Buffer.from(password).toString('base64'),[235]);}

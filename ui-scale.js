@@ -2,7 +2,12 @@
   const key='ledgerly-ui-scale-v2';
   const cookieValue=()=>document.cookie.split('; ').find(part=>part.startsWith(`${key}=`))?.split('=')[1];
   let stored=1;
-  const urlScale=Number(new URLSearchParams(location.search).get('uiScale'));
+  const paramsAtLoad=new URLSearchParams(location.search);
+  const urlScale=Number(paramsAtLoad.get('uiScale'));
+  if(paramsAtLoad.has('uiScale')){
+    paramsAtLoad.delete('uiScale');
+    history.replaceState(null,'',`${location.pathname}${paramsAtLoad.size?'?'+paramsAtLoad.toString():''}${location.hash}`);
+  }
   try { stored=urlScale||Number(localStorage.getItem(key))||Number(cookieValue())||1; } catch { stored=urlScale||Number(cookieValue())||1; }
   let scale=Math.min(1.25,Math.max(.9,stored));
   const setScale=value=>{
@@ -30,13 +35,39 @@
     input.addEventListener('input',()=>{const query=input.value.toLowerCase().trim();modal.querySelectorAll('[data-route-label]').forEach(link=>link.hidden=!link.dataset.routeLabel.includes(query));});
     input.focus();
   };
-  const showNotifications=()=>openModal('Notifications',`<p class="utility-copy">Recent workspace activity</p><div class="notification-list"><article><i>✓</i><div><b>Payment received</b><small>Berger &amp; Sohn · INV-2026-042</small></div><time>2h ago</time></article><article><i>⇧</i><div><b>Invoice sent</b><small>Weber &amp; Partner · INV-2026-041</small></div><time>Yesterday</time></article><article><i>!</i><div><b>Incoming invoice needs review</b><small>Hanse Bürobedarf GmbH</small></div><time>Yesterday</time></article></div>`);
+  const showNotifications=async()=>{
+    openModal('Notifications',`<p class="utility-copy">Loading this workspace’s activity…</p><div class="notification-list" id="notificationList"></div>`);
+    try{
+      const [{items:deliveries=[]},{items:invoices=[]}]=await Promise.all([window.LedgerlyAPI.json('/api/deliveries'),window.LedgerlyAPI.json('/api/invoices')]);
+      const events=[...deliveries.map(item=>({title:`Invoice ${item.status}`,detail:`${item.documentNumber} · ${item.channel}`,date:item.completedAt||item.createdAt})),...invoices.map(({data={},documentNumber})=>({title:`Invoice ${data.status||'draft'} saved`,detail:`${data.customer||'Customer'} · ${data.id||documentNumber}`,date:data.issueDate}))].slice(0,8);
+      const list=modal.querySelector('#notificationList');list.innerHTML=events.length?events.map(item=>`<article><i>✓</i><div><b>${String(item.title).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}</b><small>${String(item.detail).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}</small></div><time>${item.date?new Date(item.date).toLocaleDateString():'—'}</time></article>`).join(''):'<p class="utility-copy">No workspace notifications yet.</p>';
+    }catch{const list=modal.querySelector('#notificationList');if(list)list.innerHTML='<p class="utility-copy">Workspace activity is unavailable right now.</p>';}
+  };
   const showAccount=async()=>{let identity='Your Ledgerly account';try{const data=await window.LedgerlyAPI.request('/api/auth/me');identity=`${data.user.email} · ${data.workspace.role}`;}catch{}openModal('Account menu',`<p class="utility-copy">Signed in as <b>${identity.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}</b></p><a class="signout-link" href="./auth.html">Sign out <span>→</span></a>`);};
   document.addEventListener('DOMContentLoaded',()=>{
     setScale(scale);
     document.body.append(modal);
     const publicRoute=/\/(?:auth|onboarding)\.html$/.test(location.pathname);
-    if(!publicRoute&&window.LedgerlyAPI){window.LedgerlyAPI.request('/api/auth/me').catch(error=>{if(error.status===401)location.assign(`./auth.html?returnTo=${encodeURIComponent(location.pathname.split('/').pop()||'index.html')}`);});}
+    if(!publicRoute&&window.LedgerlyAPI){window.LedgerlyAPI.request('/api/auth/me').then(({user,workspace})=>{
+      document.querySelectorAll('.workspace').forEach(container=>{
+        const label=[...container.querySelectorAll('strong,b')].find(node=>node.textContent.trim().length>1);
+        if(label)label.textContent=workspace.name;
+        else [...container.childNodes].filter(node=>node.nodeType===3&&node.textContent.trim()).forEach(node=>{node.textContent=node.textContent.replace(/Nordlicht Studio|Workspace/g,workspace.name);});
+        const icon=container.querySelector('.workspace-avatar,.workspace-icon');if(icon)icon.textContent=workspace.name.trim().charAt(0).toUpperCase();
+      });
+      document.querySelectorAll('.profile-copy strong,.user-row b,.user b').forEach(node=>node.textContent=user.email);
+      document.querySelectorAll('.profile-copy small,.user-row small,.user small').forEach(node=>node.textContent=workspace.role);
+      document.querySelectorAll('.profile-avatar,.user-avatar,.user>span:first-child').forEach(node=>{if(node.children.length===0)node.textContent=user.email.slice(0,2).toUpperCase();});
+      document.querySelectorAll('.side-foot').forEach(node=>{
+        if(node.children.length===0)node.textContent=`${user.email} · ${workspace.role}`;
+        else [...node.childNodes].filter(child=>child.nodeType===3&&child.textContent.includes('Account · Admin')).forEach(child=>{child.textContent=`${user.email} · ${workspace.role}`;});
+      });
+      window.LedgerlyAPI.json('/api/invoices').then(({items=[]})=>{
+        const invoiceLink=[...document.querySelectorAll('a[href]')].find(link=>link.getAttribute('href')?.includes('invoices.html'));
+        const badge=invoiceLink?.querySelector('.nav-count,.count')||[...(invoiceLink?.children||[])].find(child=>/^\d+$/.test(child.textContent.trim()));
+        if(badge)badge.textContent=String(items.length);
+      }).catch(()=>{});
+    }).catch(error=>{if(error.status===401)location.assign(`./auth.html?returnTo=${encodeURIComponent(location.pathname.split('/').pop()||'index.html')}`);});}
     const controls=document.createElement('div');controls.className='ui-scale-controls';controls.setAttribute('aria-label','Display size controls');controls.innerHTML='<button type="button" data-scale="down" aria-label="Decrease display size">A−</button><output aria-live="polite">100%</output><button type="button" data-scale="up" aria-label="Increase display size">A+</button><button type="button" class="scale-reset" data-scale="reset">Reset</button>';
     document.body.append(controls);
     setScale(scale);
@@ -58,7 +89,6 @@
       if(localPage){
         const destination=new URL(localPage.href,location.href);
         if(destination.origin===location.origin&&destination.pathname.endsWith('.html')){
-          destination.searchParams.set('uiScale',String(scale));
           event.preventDefault();location.assign(destination.toString());return;
         }
       }
@@ -80,7 +110,7 @@
       } else {
         const footer=sidebar.querySelector('.side-foot')||sidebar;
         [...footer.childNodes].filter(node=>node.nodeType===3&&node.textContent.includes('Alex Morgan')).forEach(node=>node.remove());
-        const button=document.createElement('button');button.className='account-action account-action-wide';button.textContent='Alex Morgan · Admin　⌄';button.setAttribute('aria-label','Account options');footer.append(button);
+        const button=document.createElement('button');button.className='account-action account-action-wide';button.textContent='Account options　⌄';button.setAttribute('aria-label','Account options');footer.append(button);
       }
     }
     const params=new URLSearchParams(location.search);

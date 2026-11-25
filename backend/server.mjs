@@ -150,6 +150,19 @@ async function route(req,res) {
     appendAudit({workspaceId,actorId:userId,eventType:'workspace.smtp.updated',subjectId:workspaceId,details:{host,port,tlsMode,usernameSet:Boolean(username)}});
     return json(res,200,{configured:true,host,port,username,sender,tlsMode,passwordSaved:Boolean(passwordCiphertext)});
   }
+  if(path==='/api/settings/integrations' && req.method==='GET') {
+    if(session.role!=='owner'&&session.role!=='admin')return json(res,403,{error:'Workspace owner or admin required.'});
+    const smtp=db.prepare('SELECT host,port,username,sender,tls_mode AS tlsMode,password_ciphertext FROM smtp_settings WHERE workspace_id=?').get(workspaceId);
+    const validator=await getValidatorStatus(),mustang=getMustangStatus();
+    return json(res,200,{
+      validator:{configured:validator.configured,running:validator.running,engine:validator.engine,ruleset:validator.ruleset},
+      zugferd:{configured:mustang.configured,engine:mustang.engine},
+      email:{configured:Boolean(smtp?.host&&smtp?.sender&&(!smtp.username||smtp.password_ciphertext)),host:smtp?.host||'',port:smtp?.port||null,tlsMode:smtp?.tlsMode||'',passwordSaved:Boolean(smtp?.password_ciphertext)},
+      peppol:{configured:false,supported:false},apiEdi:{configured:false,supported:false},
+      billing:{configured:Boolean(process.env.STRIPE_SECRET_KEY&&process.env.STRIPE_WEBHOOK_SECRET&&['BUSINESS_MONTH','BUSINESS_YEAR','SCALE_MONTH','SCALE_YEAR'].every(key=>process.env[`STRIPE_PRICE_${key}`]))},
+      archive:{storage:'workspace SQL database',retentionYears:Math.max(1,Math.min(30,Number(process.env.LEDGERLY_RETENTION_YEARS)||8)),immutableObjectStorage:false}
+    });
+  }
   if(path==='/api/customers' && req.method==='GET') {
     const items=db.prepare(`SELECT id,name,email,customer_number AS customerNumber,country,street,postal_code AS postalCode,city,endpoint,endpoint_scheme AS endpointScheme,vat_id AS vatId,tax_id AS taxId
       FROM customers WHERE workspace_id=? ORDER BY name COLLATE NOCASE`).all(workspaceId).map(item=>({...item,key:item.id}));
@@ -305,7 +318,8 @@ async function route(req,res) {
     const deliveryId=id(),created=now();db.prepare('INSERT INTO delivery_jobs(id,workspace_id,artifact_id,channel,recipient,status,created_at) VALUES(?,?,?,?,?,?,?)').run(deliveryId,workspaceId,artifact.id,channel,recipient,'sending',created);
     try{
       const mailConfig=db.prepare('SELECT host,port,username,password_ciphertext AS passwordCiphertext,sender,tls_mode AS tlsMode FROM smtp_settings WHERE workspace_id=?').get(workspaceId);
-      const smtp=mailConfig?{...mailConfig,password:decryptSecret(mailConfig.passwordCiphertext)}:null;
+      if(!mailConfig?.host||!mailConfig.sender||mailConfig.username&&!mailConfig.passwordCiphertext)throw Object.assign(new Error('This workspace has not completed its SMTP setup. Configure Delivery & SMTP in workspace Settings.'),{status:503});
+      const smtp={...mailConfig,password:decryptSecret(mailConfig.passwordCiphertext)};
       const sent=await sendInvoiceEmail({smtp,recipient,subject:String(data.subject||`Invoice ${artifact.filename}`).slice(0,200),body:String(data.body||'Please find the invoice attached.').slice(0,20_000),filename:artifact.filename,mimeType:artifact.mime_type,payload:artifact.payload});
       db.prepare("UPDATE delivery_jobs SET status='sent',provider_reference=?,completed_at=? WHERE id=? AND workspace_id=?").run(sent.messageId||null,now(),deliveryId,workspaceId);
       appendAudit({workspaceId,actorId:userId,eventType:'invoice.email.sent',subjectId:deliveryId,details:{artifactId:artifact.id,recipient}});

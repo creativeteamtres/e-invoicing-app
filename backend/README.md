@@ -21,7 +21,7 @@ Each stage has a backend module and API boundary so providers and runtimes can b
 - **Manual records and counterparties:** `/api/customers`, `/api/workspace/profile`, and `/api/invoices` persist workspace data in SQL. Drafts stay separate from generated artifacts.
 - **Format generation:** `workflows/model.mjs` maps a draft and party profiles to XRechnung UBL 2.1 or EN 16931 CII. `POST /api/invoices/:id/artifacts` saves the output and validation result. XRechnung generation checks the structured data required by the configured KoSIT profile, including electronic addresses, buyer reference, seller contact/telephone, and payment details. ZUGFeRD needs a human-readable PDF source plus Mustang CLI to combine and validate the final PDF/A-3.
 - **Validation:** `validator.mjs` calls the local KoSIT HTTP daemon and retains its XML report and pinned ruleset ID. Only HTTP 200 with an unambiguous KoSIT accept report can be accepted. Rejected, unavailable, and inconclusive results block delivery.
-- **Delivery:** `workflows/email.mjs` sends MIME attachments through SMTP using Node's built-in networking/TLS modules. Workspace owners configure their own SMTP host, sender, TLS mode, and credentials under Settings → Delivery & SMTP. Passwords are AES-256-GCM encrypted in workspace SQL with a server-side key. `/api/deliveries` still requires an accepted artifact and records success/failure. Peppol and API/EDI are separate future adapters.
+- **Delivery:** `workflows/email.mjs` sends MIME attachments through SMTP using Node's built-in networking/TLS modules. Workspace owners configure their own SMTP host, sender, TLS mode, and credentials under Settings → Delivery & SMTP. Passwords are AES-256-GCM encrypted in workspace SQL with a server-side key. API email delivery requires workspace-specific SMTP settings and never falls back to shared server-wide SMTP credentials. `/api/deliveries` still requires an accepted artifact and records success/failure. Peppol and API/EDI are separate future adapters.
 - **Accounting export:** `workflows/datev.mjs` generates DATEV EXTF Buchungsstapel output using explicit client, account, framework, date-period and VAT-key mappings. `POST /api/exports/datev` creates a saved export job and download. Have the customer’s tax advisor confirm mappings before import.
 - **Archive:** `archive.mjs` stores exact inbound files and accepted outbound artifacts with SHA-256 and audit-chain events in workspace SQL.
 
@@ -34,7 +34,9 @@ Each stage has a backend module and API boundary so providers and runtimes can b
 - `archive.mjs`: exact original bytes, SHA-256 digests, configurable retention targets, and a per-workspace chained audit log.
 - `db.mjs`: SQL schema and constraints.
 
-API routes include `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/logout`, `/api/subscription`, `/api/subscription/checkout`, `/api/subscription/portal`, `/api/settings/smtp`, `/api/invoices`, `/api/validation`, `/api/archive`, `/api/archive/:id/download`, and `/api/audit/verify`.
+API routes include `/api/auth/register`, `/api/auth/login`, `/api/auth/me`, `/api/auth/logout`, `/api/subscription`, `/api/subscription/checkout`, `/api/subscription/portal`, `/api/settings/smtp`, `/api/settings/integrations`, `/api/invoices`, `/api/validation`, `/api/archive`, `/api/archive/:id/download`, and `/api/audit/verify`.
+
+Workspace Settings exposes a live owner/admin integration status panel. It does not return secrets or permit arbitrary URL/path edits from the browser. Per-workspace business details and SMTP credentials are managed in the UI; DATEV mappings are entered per export. Host-level KoSIT, Mustang, Stripe, database, and retention settings are centralized in the API `.env` deployment configuration. Peppol and API/EDI are explicitly shown as unavailable until their adapters are implemented.
 
 ## KoSIT install and test
 
